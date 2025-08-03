@@ -1,0 +1,15 @@
+# Python virtual environment
+/venv/
+
+# Environment variables file (contains secrets)
+.env
+
+# Python cache directories
+__pycache__/
+*.pyc
+
+# VS Code specific files (optional, but often helpful)
+.vscode/
+
+# Data directories (might contain large files like transcripts or models)
+/data/
