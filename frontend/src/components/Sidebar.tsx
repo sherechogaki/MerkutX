@@ -25,7 +25,7 @@ export default function Sidebar() {
       const res = await fetch('http://127.0.0.1:8000/video-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoId: 'örnek-video-id' }), // Gerçek video ID'si burada olmalı
+        body: JSON.stringify({ videoUrl: "" }), // Gerçek video ID'si burada olmalı
       })
       const data = await res.json()
       if (data.summary) {
