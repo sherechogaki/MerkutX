@@ -1,38 +1,68 @@
-from fastapi import APIRouter
-from schemas import Question, VideoRequest, ContextRequest
-from gemini_service import summarize_video
-# from gemini_service import ask_gemini, summarize_video, question_generate
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from schemas import Question
+from gemini_service import summarize_text, question_generate, ask_gemini
+from file_processing_service import FileProcessor
 
 router = APIRouter()
+file_processor = FileProcessor()
 
-@router.post("/video-summary")
-async def video_summary(data: VideoRequest):
+@router.post("/process-and-summarize")
+async def process_and_summarize(file: UploadFile = File(...)):
     try:
-        # Video içeriği metne çevrilip gemini modeline gönderilecek
-        prompt = f"{data.videoUrl}"
-        response = summarize_video(prompt)
+        # First process the file based on its type
+        if file.filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv')):
+            text = await file_processor.process_video(file)
+        elif file.filename.lower().endswith('.pdf'):
+            text = await file_processor.process_pdf(file)
+        elif file.filename.lower().endswith(('.ppt', '.pptx')):
+            text = await file_processor.process_slides(file)
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type")
 
-        return {"summary": response}
+        summary = summarize_text(text)
+        
+        return {
+            "original_text": text,
+            "summary": summary
+        }
     except Exception as e:
-        return {"error": str(e)}
-    
-"""
-@router.post("/ask")
-async def ask_question(data: Question):
-    try:
-        response = ask_gemini(data.prompt)
-
-        return {"response": response}
-    except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/generate-questions")
-async def generate_questions(data: ContextRequest):
+async def process_and_generate_questions(file: UploadFile = File(...)):
     try:
-        prompt = f"Bu metinden 3 tane önemli soru üret:\n{data.context}"
-        response = question_generate(prompt)
+        # First process the file based on its type
+        if file.filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv')):
+            text = await file_processor.process_video(file)
+        elif file.filename.lower().endswith('.pdf'):
+            text = await file_processor.process_pdf(file)
+        elif file.filename.lower().endswith(('.ppt', '.pptx')):
+            text = await file_processor.process_slides(file)
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type")
 
+        response = question_generate(text)
+        
         return {"questions": response}
     except Exception as e:
-        return {"error": str(e)}
-"""
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/ask")
+async def process_and_ask_questions(user_question: Question, file: UploadFile = File(...)):
+    try:
+        # First process the file based on its type
+        if file.filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv')):
+            text = await file_processor.process_video(file)
+        elif file.filename.lower().endswith('.pdf'):
+            text = await file_processor.process_pdf(file)
+        elif file.filename.lower().endswith(('.ppt', '.pptx')):
+            text = await file_processor.process_slides(file)
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type")
+
+        response = ask_gemini(text, user_question.prompt)
+        
+        return {"response": response}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
