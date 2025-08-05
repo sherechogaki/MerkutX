@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from schemas import Question
+from pydantic import BaseModel
 from gemini_service import summarize_text, question_generate, ask_gemini
 from file_processing_service import FileProcessor
 
@@ -47,22 +48,14 @@ async def process_and_generate_questions(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class AskRequest(BaseModel):
+    context: str
+    prompt: str
+
 @router.post("/ask")
-async def process_and_ask_questions(user_question: Question, file: UploadFile = File(...)):
+async def process_and_ask_questions(request: AskRequest):
     try:
-        # First process the file based on its type
-        if file.filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv')):
-            text = await file_processor.process_video(file)
-        elif file.filename.lower().endswith('.pdf'):
-            text = await file_processor.process_pdf(file)
-        elif file.filename.lower().endswith(('.ppt', '.pptx')):
-            text = await file_processor.process_slides(file)
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported file type")
-
-        response = ask_gemini(text, user_question.prompt)
-        
+        response = ask_gemini(request.context, request.prompt)
         return {"response": response}
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
