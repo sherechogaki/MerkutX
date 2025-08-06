@@ -49,6 +49,13 @@ Bu sayede, öğretim elemanları ders videoları, pdf, slaytlar, makaleleri gibi
 
 ## Çalıştırma Adımları
 
+Projenin lokal makinede çalıştırılabilmesi için gerekli olan API anahtarları bu sitelerden elde edilebilir: <br>
+🔶 https://console.cloud.google.com/marketplace/product/google/customsearch.googleapis.com?inv=1&invt=Ab4yOA&project=gen-lang-client-0393105183 
+<br>
+🔶 https://programmablesearchengine.google.com/controlpanel/all 
+<br>
+🔶 https://aistudio.google.com/app/apikey <br>
+
 Projeyi lokal makinenize klonlayın
 
 ```bash
